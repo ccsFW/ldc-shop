@@ -1,7 +1,7 @@
 'use server'
 
 import { db } from "@/lib/db"
-import { cards, orders, refundRequests } from "@/lib/db/schema"
+import { cards, orders, refundRequests, loginUsers } from "@/lib/db/schema"
 import { and, eq, sql } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 import { checkAdmin } from "@/actions/admin"
@@ -43,6 +43,18 @@ export async function cancelOrder(orderId: string) {
   if (!orderId) throw new Error("Missing order id")
 
   await db.transaction(async (tx) => {
+    // 1. Refund points if used
+    const order = await tx.query.orders.findFirst({
+      where: eq(orders.orderId, orderId),
+      columns: { userId: true, pointsUsed: true }
+    })
+
+    if (order?.userId && order.pointsUsed && order.pointsUsed > 0) {
+      await tx.update(loginUsers)
+        .set({ points: sql`${loginUsers.points} + ${order.pointsUsed}` })
+        .where(eq(loginUsers.userId, order.userId))
+    }
+
     await tx.update(orders).set({ status: 'cancelled' }).where(eq(orders.orderId, orderId))
     try {
       await tx.execute(sql`
@@ -73,6 +85,13 @@ export async function updateOrderEmail(orderId: string, email: string | null) {
 async function deleteOneOrder(tx: any, orderId: string) {
   const order = await tx.query.orders.findFirst({ where: eq(orders.orderId, orderId) })
   if (!order) return
+
+  // Refund points if used
+  if (order.userId && order.pointsUsed && order.pointsUsed > 0) {
+    await tx.update(loginUsers)
+      .set({ points: sql`${loginUsers.points} + ${order.pointsUsed}` })
+      .where(eq(loginUsers.userId, order.userId))
+  }
 
   // Release reserved card if any
   try {

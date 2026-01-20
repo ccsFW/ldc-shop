@@ -213,7 +213,7 @@
             "usernameLabel": "Username",
             "userIdLabel": "User ID",
             "usernamePlaceholder": "e.g. alice",
-            "userIdPlaceholder": "e.g. user_123",
+            "userIdPlaceholder": "e.g. 123456",
             "titleLabel": "Title",
             "titlePlaceholder": "Enter a title",
             "bodyLabel": "Message",

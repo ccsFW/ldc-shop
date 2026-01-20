@@ -213,7 +213,7 @@
             "usernameLabel": "用户名",
             "userIdLabel": "用户ID",
             "usernamePlaceholder": "例如：alice",
-            "userIdPlaceholder": "例如：user_123",
+            "userIdPlaceholder": "例如：123456",
             "titleLabel": "标题",
             "titlePlaceholder": "请输入标题",
             "bodyLabel": "内容",
